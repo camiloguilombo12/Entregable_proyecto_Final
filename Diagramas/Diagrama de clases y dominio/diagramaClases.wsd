@@ -1,0 +1,263 @@
+@startuml
+
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+
+package Observer {
+  interface IObservador {
+    +actualizar(mensaje: String)
+  }
+
+  interface ISujeto {
+    +suscribir(o: IObservador)
+    +desuscribir(o: IObservador)
+    +notificar(mensaje: String)
+  }
+}
+
+
+package Strategy {
+  interface IMetodoPago {
+    +pagar(monto: double): boolean
+  }
+
+  class PagoTarjeta {
+    +pagar(monto: double): boolean
+    +validarTarjeta(): boolean
+  }
+
+  class PagoEfectivo {
+    +pagar(monto: double): boolean
+    +validarMonto(): boolean
+  }
+
+  class PagoTransferencia {
+    +pagar(monto: double): boolean
+    +validarCuenta(): boolean
+  }
+
+  class MetodoPagoFactory {
+    +crearMetodo(tipo: String): IMetodoPago
+  }
+
+  IMetodoPago <|-- PagoTarjeta
+  IMetodoPago <|-- PagoEfectivo
+  IMetodoPago <|-- PagoTransferencia
+
+  MetodoPagoFactory ..> IMetodoPago
+
+
+  interface IAsignacionOperario {
+    +asignar(s: SolicitudServicio): Operario
+  }
+
+  class AsignacionManual {
+    +asignar(s: SolicitudServicio): Operario
+  }
+
+  class AsignacionAutomatica {
+    +asignar(s: SolicitudServicio): Operario
+    +buscarDisponible(zona: String): Operario
+  }
+
+  IAsignacionOperario <|-- AsignacionManual
+  IAsignacionOperario <|-- AsignacionAutomatica
+}
+
+
+package Command {
+  interface ICommand {
+    +ejecutar(): void
+  }
+
+  class CrearSolicitudCommand {
+    +ejecutar(): void
+  }
+
+  class CancelarSolicitudCommand {
+    +ejecutar(): void
+  }
+
+  class AsignarOperarioCommand {
+    +ejecutar(): void
+  }
+
+  class RealizarPagoCommand {
+    +ejecutar(): void
+  }
+
+  class Invoker {
+    +ejecutarComando(c: ICommand): void
+  }
+
+  ICommand <|-- CrearSolicitudCommand
+  ICommand <|-- CancelarSolicitudCommand
+  ICommand <|-- AsignarOperarioCommand
+  ICommand <|-- RealizarPagoCommand
+
+  Invoker ..> ICommand
+}
+
+
+package Iterator {
+  interface IIterador {
+    +next(): Object
+    +hasNext(): boolean
+  }
+
+  class ListaSolicitud {
+    -solicitud: List
+    +crearIterador(): IIterador
+    +agregarSolicitud(s: SolicitudServicio): void
+    +eliminarSolicitud(id: int): void
+  }
+
+  class ListaNotificacion {
+    -notificacion: List
+    +crearIterador(): IIterador
+    +agregarNotificacion(n: Notificacion): void
+  }
+
+  ListaSolicitud ..> IIterador
+  ListaNotificacion ..> IIterador
+}
+
+
+package Singleton {
+  class SistemaNotificacion {
+    -instancia: SistemaNotificacion
+    +getInstancia(): SistemaNotificacion
+    +enviarNotificacion(u: Usuario, mensaje: String): void
+    +enviarPromocion(mensaje: String): void
+  }
+}
+
+
+package Modelo {
+
+  class Usuario {
+    -id: int
+    -nombre: String
+    -email: String
+    -telefono: String
+    +registrarse(): boolean
+    +iniciarSesion(email, password): boolean
+    +editarPerfil(nombre, telefono): void
+    +solicitarServicio(): SolicitudServicio
+    +realizarPago(p: Pago): boolean
+    +actualizar(mensaje: String): void
+  }
+
+  class Rol {
+    -id: int
+    -nombre: String
+    +crearRol(nombre): void
+    +editarRol(nombre): void
+    +eliminarRol(id): void
+  }
+
+  class Vehiculo {
+    -id: int
+    -placa: String
+    -tipo: String
+    +registrar(): void
+    +editar(): void
+    +eliminar(): void
+  }
+
+  class SolicitudServicio {
+    -id: int
+    -fechaCreacion: String
+    -estado: String
+    -observadores: List
+    -asignador: IAsignacionOperario
+    +crear(): void
+    +cancelar(): void
+    +asignarOperario(): void
+    +calcularCosto(): double
+    +cambiarEstado(estado: String): void
+    +suscribir(o: IObservador): void
+    +notificar(mensaje: String): void
+  }
+
+  class Pago {
+    -id: int
+    -monto: double
+    -metodo: IMetodoPago
+    +realizarPago(): boolean
+    +confirmarPago(): void
+    +cancelarPago(): void
+  }
+
+  class Operario {
+    -id: int
+    -estado: String
+    -zona: String
+    +asignarZona(zona): void
+    +aceptarServicio(): void
+    +finalizarServicio(): void
+  }
+
+  class Reserva {
+    -id: int
+    -inicio: String
+    -fin: String
+    +crear(): void
+    +cancelar(): void
+    +validarHorario(): boolean
+  }
+
+  class Notificacion {
+    -id: int
+    -mensaje: String
+    +enviar(u: Usuario): void
+    +marcarLeida(): void
+  }
+
+  class CalificacionOpinion {
+    -id: int
+    -puntuacion: int
+    -comentario: String
+    +crear(): void
+    +editar(): void
+    +eliminar(): void
+  }
+}
+
+
+IObservador <|.. Usuario
+ISujeto <|.. SolicitudServicio
+
+Pago ..> IMetodoPago
+Pago ..> MetodoPagoFactory
+
+SistemaNotificacion ..> Notificacion
+SistemaNotificacion ..> Usuario
+
+CrearSolicitudCommand ..> SolicitudServicio
+CancelarSolicitudCommand ..> SolicitudServicio
+AsignarOperarioCommand ..> IAsignacionOperario
+RealizarPagoCommand ..> Pago
+
+SolicitudServicio --> IAsignacionOperario
+
+
+Usuario "1" *-- "1" ListaSolicitud
+Usuario "1" *-- "1" ListaNotificacion
+SolicitudServicio "1" *-- "1" Reserva
+SolicitudServicio "1" *-- "0..1" CalificacionOpinion
+
+
+Usuario "1" o-- "1" Rol
+Usuario "1" o-- "1..*" Vehiculo
+ListaSolicitud "1" o-- "0..*" SolicitudServicio
+ListaNotificacion "1" o-- "0..*" Notificacion
+
+
+SolicitudServicio "1" --> "1" Usuario
+SolicitudServicio "1" --> "1" Pago
+SolicitudServicio "1" --> "0..1" Operario
+Usuario "1" --> "0..*" Notificacion
+
+@enduml

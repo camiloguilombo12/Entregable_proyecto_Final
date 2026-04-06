@@ -1,0 +1,74 @@
+@startuml RF3
+start
+
+partition Sistema {
+  :Detectar solicitud de servicio pendiente;
+}
+
+partition Sistema {
+  :Evaluar tipo de asignación;
+}
+
+if (¿Tipo de asignación?) then (Automática)
+
+  partition Sistema {
+    :Consultar operarios disponibles;
+  }
+
+  if (¿Hay operarios disponibles?) then (No)
+    :Mostrar "No hay operarios disponibles";
+  else (Sí)
+
+    partition Sistema {
+      :Evaluar carga de trabajo;
+      :Seleccionar operario óptimo;
+      :Asignar servicio automáticamente;
+      :Notificar al operario;
+      :Actualizar estado del servicio;
+    }
+
+  endif
+
+elseif (Manual)
+
+  partition Sistema {
+    :Mostrar lista de operarios;
+  }
+
+  partition Usuario {
+    :Seleccionar operario;
+  }
+
+  partition Sistema {
+    if (¿Operario disponible?) then (No)
+      :Mostrar "Operario no disponible";
+    else (Sí)
+      :Asignar servicio manualmente;
+      :Notificar al operario;
+      :Actualizar estado del servicio;
+    endif
+  }
+
+elseif (Visualizar servicios)
+
+  partition Sistema {
+    :Consultar servicios asignados;
+  }
+
+  partition Usuario {
+    :Solicitar visualización;
+  }
+
+  partition Sistema {
+    if (¿Existen servicios?) then (No)
+      :Mostrar "No hay servicios asignados";
+    else (Sí)
+      :Mostrar lista de servicios;
+      :Mostrar detalles del servicio;
+    endif
+  }
+
+endif
+
+stop
+@enduml

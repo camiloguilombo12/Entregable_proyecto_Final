@@ -1,0 +1,83 @@
+@startuml RF6
+start
+
+partition Sistema {
+  :Cargar panel de usuario (dashboard);
+  :Mostrar menú principal;
+}
+
+partition Usuario {
+  :Seleccionar opción;
+}
+
+if (¿Qué desea hacer?) then (Ver dashboard)
+
+  partition Sistema {
+    :Consultar información del usuario;
+    :Mostrar resumen de servicios;
+    :Mostrar estado de solicitudes;
+  }
+
+elseif (Ver notificaciones)
+
+  partition Sistema {
+    :Consultar notificaciones;
+    if (¿Existen notificaciones?) then (No)
+      :Mostrar "No hay notificaciones";
+    else (Sí)
+      :Mostrar lista de notificaciones;
+    endif
+  }
+
+  partition Usuario {
+    :Seleccionar notificación;
+  }
+
+  partition Sistema {
+    :Mostrar detalle de notificación;
+  }
+
+elseif (Personalizar tema)
+
+  partition Sistema {
+    :Mostrar opciones de tema;
+  }
+
+  partition Usuario {
+    :Seleccionar tema;
+  }
+
+  partition Sistema {
+    if (¿Tema válido?) then (No)
+      :Mostrar error;
+    else (Sí)
+      :Aplicar tema;
+      :Guardar preferencia;
+      :Actualizar interfaz;
+    endif
+  }
+
+elseif (Seleccionar idioma)
+
+  partition Sistema {
+    :Mostrar idiomas disponibles;
+  }
+
+  partition Usuario {
+    :Seleccionar idioma;
+  }
+
+  partition Sistema {
+    if (¿Idioma válido?) then (No)
+      :Mostrar error;
+    else (Sí)
+      :Aplicar idioma;
+      :Guardar preferencia;
+      :Actualizar interfaz;
+    endif
+  }
+
+endif
+
+stop
+@enduml

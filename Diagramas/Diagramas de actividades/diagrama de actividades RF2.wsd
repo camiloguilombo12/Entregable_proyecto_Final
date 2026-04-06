@@ -1,0 +1,143 @@
+@startuml RF2
+start
+
+partition Sistema {
+  :Mostrar menú de servicios;
+}
+
+partition Usuario {
+  :Seleccionar opción;
+}
+
+if (¿Qué desea hacer?) then (Solicitar servicio)
+
+  partition Sistema {
+    :Mostrar tipos de servicio;
+  }
+
+  partition Usuario {
+    :Seleccionar tipo de lavado;
+    :Ingresar datos del vehículo;
+  }
+
+  partition Sistema {
+    if (¿Datos completos?) then (No)
+      :Mostrar error;
+    else (Sí)
+
+      if (¿Datos válidos?) then (No)
+        :Mostrar error;
+      else (Sí)
+
+        :Consultar disponibilidad;
+
+        if (¿Hay disponibilidad?) then (No)
+          :Mostrar "No hay cupos disponibles";
+        else (Sí)
+          :Mostrar horarios disponibles;
+        endif
+
+      endif
+    endif
+  }
+
+  partition Usuario {
+    :Seleccionar horario;
+  }
+
+  partition Sistema {
+    if (¿Horario válido?) then (No)
+      :Mostrar error;
+    else (Sí)
+      :Registrar solicitud;
+      :Confirmar servicio;
+    endif
+  }
+
+elseif (Reservar turno)
+
+  partition Sistema {
+    :Mostrar agenda disponible;
+  }
+
+  partition Usuario {
+    :Seleccionar fecha y hora;
+  }
+
+  partition Sistema {
+    if (¿Horario disponible?) then (No)
+      :Mostrar "Horario no disponible";
+    else (Sí)
+      :Asignar turno;
+      :Guardar reserva;
+      :Mostrar confirmación;
+    endif
+  }
+
+elseif (Modificar solicitud)
+
+  partition Sistema {
+    :Mostrar solicitudes activas;
+  }
+
+  partition Usuario {
+    :Seleccionar solicitud;
+  }
+
+  partition Sistema {
+    if (¿Solicitud existe?) then (No)
+      :Mostrar error;
+    else (Sí)
+
+      if (¿Estado permite modificación?) then (No)
+        :Mostrar "No se puede modificar";
+      else (Sí)
+        :Mostrar opciones de cambio;
+      endif
+
+    endif
+  }
+
+  partition Usuario {
+    :Modificar datos / horario;
+  }
+
+  partition Sistema {
+    if (¿Cambios válidos?) then (No)
+      :Mostrar error;
+    else (Sí)
+      :Actualizar solicitud;
+      :Mostrar confirmación;
+    endif
+  }
+
+elseif (Cancelar solicitud)
+
+  partition Sistema {
+    :Mostrar solicitudes activas;
+  }
+
+  partition Usuario {
+    :Seleccionar solicitud;
+  }
+
+  partition Sistema {
+    if (¿Solicitud existe?) then (No)
+      :Mostrar error;
+    else (Sí)
+
+      if (¿Se puede cancelar?) then (No)
+        :Mostrar "No se puede cancelar";
+      else (Sí)
+        :Cancelar servicio;
+        :Liberar horario;
+        :Mostrar confirmación;
+      endif
+
+    endif
+  }
+
+endif
+
+stop
+@enduml

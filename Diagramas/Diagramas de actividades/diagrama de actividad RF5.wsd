@@ -1,0 +1,80 @@
+@startuml RF5
+start
+
+partition Sistema {
+  :Detectar servicio finalizado;
+  :Mostrar opción de calificar servicio;
+}
+
+partition Usuario {
+  :Seleccionar opción;
+}
+
+if (¿Qué desea hacer?) then (Calificar servicio)
+
+  partition Sistema {
+    :Mostrar lista de servicios finalizados;
+  }
+
+  partition Usuario {
+    :Seleccionar servicio;
+  }
+
+  partition Sistema {
+    if (¿Servicio válido?) then (No)
+      :Mostrar error;
+    else (Sí)
+
+      if (¿Ya fue calificado?) then (Sí)
+        :Mostrar "Ya calificó este servicio";
+      else (No)
+        :Mostrar formulario de calificación;
+      endif
+
+    endif
+  }
+
+  partition Usuario {
+    :Ingresar calificación (1-5);
+    :Ingresar comentario;
+  }
+
+  partition Sistema {
+    if (¿Calificación válida?) then (No)
+      :Mostrar error;
+    else (Sí)
+
+      if (¿Comentario válido?) then (No)
+        :Mostrar error;
+      else (Sí)
+        :Guardar calificación;
+        :Actualizar promedio del servicio;
+        :Mostrar confirmación;
+      endif
+
+    endif
+  }
+
+elseif (Ver calificaciones)
+
+  partition Sistema {
+    :Consultar calificaciones;
+    if (¿Existen calificaciones?) then (No)
+      :Mostrar "No hay calificaciones";
+    else (Sí)
+      :Mostrar lista de calificaciones;
+    endif
+  }
+
+  partition Usuario {
+    :Seleccionar calificación;
+  }
+
+  partition Sistema {
+    :Mostrar detalle de la opinión;
+  }
+
+endif
+
+stop
+@enduml

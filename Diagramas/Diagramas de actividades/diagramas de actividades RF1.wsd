@@ -1,0 +1,152 @@
+@startuml RF1
+start
+
+partition Sistema {
+  :Mostrar pantalla de ingreso;
+}
+
+partition Usuario {
+  :Seleccionar opción;
+}
+
+if (¿Qué desea hacer?) then (Registrarse)
+
+  partition Sistema {
+    :Mostrar formulario de registro;
+  }
+
+  partition Usuario {
+    :Ingresar datos;
+  }
+
+  partition Sistema {
+    if (¿Campos completos?) then (No)
+      :Mostrar error;
+    else (Sí)
+      if (¿Correo válido?) then (No)
+        :Mostrar error correo;
+      else (Sí)
+        if (¿Correo ya existe?) then (Sí)
+          :Mostrar "Usuario ya existe";
+        else (No)
+          if (¿Contraseña segura?) then (No)
+            :Mostrar requisitos;
+          else (Sí)
+            if (¿Contraseñas coinciden?) then (No)
+              :Mostrar error;
+            else (Sí)
+              :Crear cuenta;
+              :Mostrar "Registro exitoso";
+            endif
+          endif
+        endif
+      endif
+    endif
+  }
+
+elseif (Iniciar sesión)
+
+  partition Sistema {
+    :Mostrar login;
+  }
+
+  partition Usuario {
+    :Ingresar credenciales;
+  }
+
+  partition Sistema {
+    if (¿Campos completos?) then (No)
+      :Mostrar error;
+    else (Sí)
+      if (¿Usuario existe?) then (No)
+        :Mostrar "No existe";
+      else (Sí)
+        if (¿Contraseña correcta?) then (No)
+          :Mostrar error;
+        else (Sí)
+          if (¿Cuenta activa?) then (No)
+            :Mostrar "Cuenta bloqueada";
+          else (Sí)
+            :Acceder al sistema;
+          endif
+        endif
+      endif
+    endif
+  }
+
+elseif (Recuperar contraseña)
+
+  partition Sistema {
+    :Solicitar correo;
+  }
+
+  partition Usuario {
+    :Ingresar correo;
+  }
+
+  partition Sistema {
+    if (¿Correo válido?) then (No)
+      :Mostrar error;
+    else (Sí)
+      if (¿Correo registrado?) then (No)
+        :Mostrar "No existe";
+      else (Sí)
+        :Enviar código al correo;
+      endif
+    endif
+  }
+
+  partition Usuario {
+    :Ingresar código;
+  }
+
+  partition Sistema {
+    if (¿Código correcto?) then (No)
+      :Mostrar error;
+    else (Sí)
+      :Permitir cambio de contraseña;
+    endif
+  }
+
+  partition Usuario {
+    :Ingresar nueva contraseña;
+  }
+
+  partition Sistema {
+    :Actualizar contraseña;
+  }
+
+elseif (Cambiar contraseña)
+
+  partition Sistema {
+    if (¿Usuario autenticado?) then (No)
+      :Mostrar "Debe iniciar sesión";
+    else (Sí)
+    endif
+  }
+
+  partition Usuario {
+    :Ingresar contraseña actual y nueva;
+  }
+
+  partition Sistema {
+    if (¿Contraseña actual correcta?) then (No)
+      :Mostrar error;
+    else (Sí)
+      if (¿Nueva contraseña segura?) then (No)
+        :Mostrar requisitos;
+      else (Sí)
+        if (¿Coinciden?) then (No)
+          :Mostrar error;
+        else (Sí)
+          :Actualizar contraseña;
+          :Cerrar sesión;
+        endif
+      endif
+    endif
+  }
+
+endif
+
+stop
+@enduml

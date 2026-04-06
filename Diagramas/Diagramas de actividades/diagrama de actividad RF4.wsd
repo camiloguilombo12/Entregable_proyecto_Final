@@ -1,0 +1,96 @@
+@startuml RF4
+start
+
+partition Sistema {
+  :Detectar servicio finalizado o pendiente de pago;
+}
+
+partition Sistema {
+  :Mostrar opciones de pago;
+}
+
+partition Usuario {
+  :Seleccionar opción;
+}
+
+if (¿Qué desea hacer?) then (Pagar en línea)
+
+  partition Sistema {
+    :Mostrar métodos de pago;
+  }
+
+  partition Usuario {
+    :Seleccionar método de pago;
+    :Ingresar datos de pago;
+  }
+
+  partition Sistema {
+    if (¿Datos completos?) then (No)
+      :Mostrar error;
+    else (Sí)
+
+      if (¿Datos válidos?) then (No)
+        :Mostrar error en datos;
+      else (Sí)
+
+        :Procesar pago;
+
+        if (¿Pago aprobado?) then (No)
+          :Mostrar "Pago rechazado";
+        else (Sí)
+          :Confirmar pago;
+          :Actualizar estado del servicio;
+        endif
+
+      endif
+    endif
+  }
+
+elseif (Registrar pago)
+
+  partition Sistema {
+    :Solicitar datos del pago;
+  }
+
+  partition Usuario {
+    :Ingresar información del pago;
+  }
+
+  partition Sistema {
+    if (¿Datos completos?) then (No)
+      :Mostrar error;
+    else (Sí)
+
+      if (¿Datos válidos?) then (No)
+        :Mostrar error;
+      else (Sí)
+        :Registrar pago en sistema;
+        :Generar comprobante;
+      endif
+
+    endif
+  }
+
+elseif (Ver historial de pagos)
+
+  partition Sistema {
+    :Consultar pagos del usuario;
+    if (¿Existen pagos?) then (No)
+      :Mostrar "No hay historial";
+    else (Sí)
+      :Mostrar lista de pagos;
+    endif
+  }
+
+  partition Usuario {
+    :Seleccionar pago;
+  }
+
+  partition Sistema {
+    :Mostrar detalle del pago;
+  }
+
+endif
+
+stop
+@enduml

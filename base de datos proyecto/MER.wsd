@@ -1,0 +1,372 @@
+@startuml lavado_vehicular
+!define pk(x) <b>x</b>
+!define fk(x) <i>x</i>
+skinparam linetype ortho
+skinparam roundcorner 5
+skinparam class {
+  BackgroundColor White
+  BorderColor Black
+  ArrowColor Black
+}
+hide circle
+hide empty members
+
+' ================= ESQUEMA DE SEGURIDAD =================
+package "Esquema de Seguridad" {
+
+  entity Tenant {
+    pk(id_tenant) : bigint
+    --
+    nombre : varchar
+    activo : boolean
+    fecha_creacion : date
+  }
+
+  entity Usuario {
+    pk(id_usuario) : bigint
+    --
+    fk(id_tenant) : bigint
+    nombre : varchar
+    correo : varchar <<unique>>
+    telefono : varchar
+    contrasena : varchar
+    activo : boolean
+    fecha_creacion : datetime
+    fecha_actualizacion : datetime
+    usuario_creacion : int
+    usuario_actualizacion : int
+  }
+
+  entity Rol {
+    pk(id_rol) : int
+    --
+    nombre : varchar
+    descripcion : varchar(300)
+  }
+
+  entity Usuario_Rol {
+    pk(id_usuario) : bigint
+    pk(id_rol) : int
+    --
+    rol_principal : boolean
+  }
+
+  entity Modulo {
+    pk(id_modulo) : int
+    --
+    nombre : varchar
+    ruta : varchar
+    icono : varchar
+  }
+
+  entity Rol_Modulo {
+    pk(id) : int
+    --
+    fk(id_rol) : int
+    fk(id_modulo) : int
+  }
+
+  entity TokenRecuperacion {
+    pk(id_token) : int
+    --
+    fk(id_usuario) : bigint
+    token : varchar <<unique>>
+    fecha_expiracion : datetime
+    usado : boolean
+  }
+
+  entity Preferencia_Usuario {
+    pk(id_preferencia) : int
+    --
+    fk(id_usuario) : bigint <<unique>>
+    tema : varchar
+    idioma : varchar
+    notificacion_activa : boolean
+  }
+}
+
+' ================= ESQUEMA OPERACIONAL =================
+package "Esquema Operacional" {
+
+  entity Zona {
+    pk(id_zona) : int
+    --
+    nombre : varchar
+    ciudad : varchar
+    activo : boolean
+  }
+
+  entity Sucursal {
+    pk(id_sucursal) : int
+    --
+    nombre : varchar
+    direccion : varchar
+    ciudad : varchar
+    fk(id_zona) : int
+    activo : boolean
+  }
+
+  entity Operario {
+    pk(id_operario) : int
+    --
+    fk(id_usuario) : bigint <<unique>>
+    especialidad : varchar(100)
+    calificacion : decimal(3,2)
+    activo : boolean
+  }
+
+  entity Operario_Zona {
+    pk(id_operario) : int
+    pk(id_zona) : int
+    --
+    turno : varchar
+    activo : boolean
+  }
+
+  entity Operario_Historial {
+    pk(id_historial) : int
+    --
+    fk(id_operario) : int
+    especialidad : varchar
+    calificacion : decimal(3,2)
+    fecha : datetime
+    fk(id_usuario) : bigint
+    comentario : varchar
+  }
+
+  entity Vehiculo {
+    pk(id_vehiculo) : int
+    --
+    fk(id_usuario) : bigint
+    placa : varchar <<unique>>
+    marca : varchar
+    modelo : varchar
+    tipo : varchar
+    activo : boolean
+    fecha_creacion : datetime
+    fecha_actualizacion : datetime
+    usuario_creacion : int
+    usuario_actualizacion : int
+  }
+
+  entity Notificacion {
+    pk(id_notificacion) : int
+    --
+    fk(id_usuario) : bigint
+    mensaje : varchar
+    leida : boolean
+    fecha : datetime
+    tipo : varchar
+  }
+
+  entity Servicio {
+    pk(id_servicio) : int
+    --
+    nombre : varchar <<unique>>
+    descripcion : varchar(255)
+    precio : decimal(10,2)
+    activo : boolean
+    fecha_creacion : datetime
+    fecha_actualizacion : datetime
+    usuario_creacion : int
+    usuario_actualizacion : int
+  }
+
+  entity Servicio_Historial {
+    pk(id_historial) : int
+    --
+    fk(id_servicio) : int
+    nombre : varchar
+    precio : decimal(10,2)
+    fecha : datetime
+    fk(id_usuario) : bigint
+    comentario : varchar
+  }
+
+  entity Estado_Reserva {
+    pk(id_estado_reserva) : int
+    --
+    nombre : varchar
+  }
+
+  entity Reserva {
+    pk(id_reserva) : int
+    --
+    fk(id_usuario) : bigint
+    fk(id_vehiculo) : int
+    fk(id_sucursal) : int
+    fk(id_estado_reserva) : int
+    fecha : datetime
+    observaciones : varchar(500)
+    total : decimal(10,2)
+    activo : boolean
+    fecha_creacion : datetime
+    fecha_actualizacion : datetime
+    usuario_creacion : int
+    usuario_actualizacion : int
+  }
+
+  entity Reserva_Servicio {
+    pk(id_reserva) : int
+    pk(id_servicio) : int
+    --
+    cantidad : int = 1
+    precio_unitario : decimal(10,2)
+    duracion_min : int
+  }
+
+  entity Reserva_Historial {
+    pk(id_historial) : int
+    --
+    fk(id_reserva) : int
+    estado : varchar(50)
+    fecha : datetime
+    id_usuario : bigint
+    comentario : varchar(255)
+  }
+
+  entity Asignacion {
+    pk(id_asignacion) : int
+    --
+    fk(id_reserva) : int
+    fk(id_operario) : int
+    estado : varchar(50)
+    f_asignacion : datetime
+  }
+
+  entity Asignacion_Historial {
+    pk(id_historial) : int
+    --
+    fk(id_asignacion) : int
+    estado : varchar
+    fecha : datetime
+    fk(id_usuario) : bigint
+    comentario : varchar
+  }
+
+  entity Calificacion {
+    pk(id_calificacion) : int
+    --
+    fk(id_reserva) : int
+    fk(id_usuario) : bigint
+    fk(id_operario) : int
+    puntuacion : int
+    comentario : varchar(255)
+    fecha : datetime
+  }
+}
+
+' ================= ESQUEMA COMERCIAL =================
+package "Esquema Comercial" {
+
+  entity Promocion {
+    pk(id_promo) : int
+    --
+    nombre : varchar
+    porcentaje : decimal(5,2)
+    valor : decimal(10,2)
+    fecha_inicio : date
+    fecha_fin : date
+    activo : boolean
+  }
+
+  entity Aplica_Promo {
+    pk(id_aplica) : int
+    --
+    fk(id_reserva) : int
+    fk(id_promocion) : int
+    monto_descuento : decimal(10,2)
+  }
+
+  entity Estado_Pago {
+    pk(id_estado_pago) : int
+    --
+    nombre : varchar
+  }
+
+  entity Pago {
+    pk(id_pago) : int
+    --
+    fk(id_reserva) : int
+    fk(id_estado_pago) : int
+    monto : decimal(10,2)
+    fecha : datetime
+    fecha_creacion : datetime
+    fecha_actualizacion : datetime
+    usuario_creacion : int
+    usuario_actualizacion : int
+  }
+
+  entity Tipo_Pago {
+    pk(id_tipo) : int
+    --
+    nombre : varchar
+  }
+
+  entity Detalle_Pago {
+    pk(id_detalle) : int
+    --
+    fk(id_pago) : int
+    fk(id_tipo) : int
+    referencia : varchar
+    estado_pago : varchar
+  }
+
+  entity Pago_Historial {
+    pk(id_historial) : int
+    --
+    fk(id_pago) : int
+    estado : varchar(50)
+    fecha : datetime
+    id_usuario : bigint
+    comentario : varchar(255)
+  }
+}
+
+' ================= RELACIONES =================
+
+' Esquema de Seguridad
+Tenant ||--o{ Usuario
+Usuario ||--o{ Usuario_Rol
+Rol ||--o{ Usuario_Rol
+Rol ||--o{ Rol_Modulo
+Modulo ||--o{ Rol_Modulo
+Usuario ||--o{ TokenRecuperacion
+Usuario ||--o| Preferencia_Usuario
+
+' Esquema Operacional
+Zona ||--o{ Sucursal
+Usuario ||--o| Operario
+Operario ||--o{ Operario_Zona
+Zona ||--o{ Operario_Zona
+Operario ||--o{ Operario_Historial
+Usuario ||--o{ Operario_Historial
+Usuario ||--o{ Vehiculo
+Usuario ||--o{ Notificacion
+Servicio ||--o{ Servicio_Historial
+Usuario ||--o{ Servicio_Historial
+Usuario ||--o{ Reserva
+Vehiculo ||--o{ Reserva
+Sucursal ||--o{ Reserva
+Estado_Reserva ||--o{ Reserva
+Reserva ||--o{ Reserva_Servicio
+Servicio ||--o{ Reserva_Servicio
+Reserva ||--o{ Reserva_Historial
+Reserva ||--o{ Asignacion
+Operario ||--o{ Asignacion
+Asignacion ||--o{ Asignacion_Historial
+Usuario ||--o{ Asignacion_Historial
+Reserva ||--o{ Calificacion
+Usuario ||--o{ Calificacion
+Operario ||--o{ Calificacion
+
+' Esquema Comercial
+Reserva ||--o{ Aplica_Promo
+Promocion ||--o{ Aplica_Promo
+Reserva ||--o{ Pago
+Estado_Pago ||--o{ Pago
+Pago ||--o{ Detalle_Pago
+Tipo_Pago ||--o{ Detalle_Pago
+Pago ||--o{ Pago_Historial
+
+@enduml

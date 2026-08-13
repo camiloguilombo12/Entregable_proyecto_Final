@@ -1,0 +1,321 @@
+Project lavado_vehicular {
+  database_type: 'MySQL'
+  Note: 'MER - Sistema de Lavado Vehicular (multi-tenant)'
+}
+
+// ESQUEMA DE SEGURIDAD
+
+Table Tenant {
+  id_tenant bigint [pk]
+  nombre varchar
+  activo boolean
+  fecha_creacion date
+}
+
+Table Usuario {
+  id_usuario bigint [pk]
+  id_tenant bigint [ref: > Tenant.id_tenant]
+  nombre varchar
+  correo varchar [unique]
+  telefono varchar
+  contrasena varchar
+  activo boolean
+  fecha_creacion datetime
+  fecha_actualizacion datetime
+  usuario_creacion int
+  usuario_actualizacion int
+}
+
+Table Rol {
+  id_rol int [pk]
+  nombre varchar
+  descripcion varchar(300)
+}
+
+Table Usuario_Rol {
+  id_usuario bigint [pk, ref: > Usuario.id_usuario]
+  id_rol int [pk, ref: > Rol.id_rol]
+  rol_principal boolean
+}
+
+Table Modulo {
+  id_modulo int [pk]
+  nombre varchar
+  ruta varchar
+  icono varchar
+}
+
+Table Rol_Modulo {
+  id int [pk]
+  id_rol int [ref: > Rol.id_rol]
+  id_modulo int [ref: > Modulo.id_modulo]
+}
+
+Table TokenRecuperacion {
+  id_token int [pk]
+  id_usuario bigint [ref: > Usuario.id_usuario]
+  token varchar [unique]
+  fecha_expiracion datetime
+  usado boolean
+}
+
+Table Preferencia_Usuario {
+  id_preferencia int [pk]
+  id_usuario bigint [ref: > Usuario.id_usuario, unique]
+  tema varchar
+  idioma varchar
+  notificacion_activa boolean
+}
+
+// ESQUEMA OPERACIONAL
+
+Table Zona {
+  id_zona int [pk]
+  nombre varchar
+  ciudad varchar
+  activo boolean
+}
+
+Table Sucursal {
+  id_sucursal int [pk]
+  nombre varchar
+  direccion varchar
+  ciudad varchar
+  id_zona int [ref: > Zona.id_zona]
+  activo boolean
+}
+
+Table Operario {
+  id_operario int [pk]
+  id_usuario bigint [ref: > Usuario.id_usuario, unique]
+  especialidad varchar(100)
+  calificacion decimal(3,2)
+  activo boolean
+}
+
+Table Operario_Zona {
+  id_operario int [pk, ref: > Operario.id_operario]
+  id_zona int [pk, ref: > Zona.id_zona]
+  turno varchar
+  activo boolean
+}
+
+Table Operario_Historial {
+  id_historial int [pk]
+  id_operario int [ref: > Operario.id_operario]
+  especialidad varchar
+  calificacion decimal(3,2)
+  fecha datetime
+  id_usuario bigint [ref: > Usuario.id_usuario]
+  comentario varchar
+}
+
+Table Vehiculo {
+  id_vehiculo int [pk]
+  id_usuario bigint [ref: > Usuario.id_usuario]
+  placa varchar [unique]
+  marca varchar
+  modelo varchar
+  tipo varchar
+  activo boolean
+  fecha_creacion datetime
+  fecha_actualizacion datetime
+  usuario_creacion int
+  usuario_actualizacion int
+}
+
+Table Notificacion {
+  id_notificacion int [pk]
+  id_usuario bigint [ref: > Usuario.id_usuario]
+  mensaje varchar
+  leida boolean
+  fecha datetime
+  tipo varchar
+}
+
+Table Servicio {
+  id_servicio int [pk]
+  nombre varchar [unique]
+  descripcion varchar(255)
+  precio decimal(10,2)
+  activo boolean
+  fecha_creacion datetime
+  fecha_actualizacion datetime
+  usuario_creacion int
+  usuario_actualizacion int
+}
+
+Table Servicio_Historial {
+  id_historial int [pk]
+  id_servicio int [ref: > Servicio.id_servicio]
+  nombre varchar
+  precio decimal(10,2)
+  fecha datetime
+  id_usuario bigint [ref: > Usuario.id_usuario]
+  comentario varchar
+}
+
+Table Estado_Reserva {
+  id_estado_reserva int [pk]
+  nombre varchar
+}
+
+Table Reserva {
+  id_reserva int [pk]
+  id_usuario bigint [ref: > Usuario.id_usuario]
+  id_vehiculo int [ref: > Vehiculo.id_vehiculo]
+  id_sucursal int [ref: > Sucursal.id_sucursal]
+  id_estado_reserva int [ref: > Estado_Reserva.id_estado_reserva]
+  fecha datetime
+  observaciones varchar(500)
+  total decimal(10,2)
+  activo boolean
+  fecha_creacion datetime
+  fecha_actualizacion datetime
+  usuario_creacion int
+  usuario_actualizacion int
+}
+
+Table Reserva_Servicio {
+  id_reserva int [pk, ref: > Reserva.id_reserva]
+  id_servicio int [pk, ref: > Servicio.id_servicio]
+  cantidad int [default: 1]
+  precio_unitario decimal(10,2)
+  duracion_min int
+}
+
+Table Reserva_Historial {
+  id_historial int [pk]
+  id_reserva int [ref: > Reserva.id_reserva]
+  estado varchar(50)
+  fecha datetime
+  id_usuario bigint
+  comentario varchar(255)
+}
+
+Table Asignacion {
+  id_asignacion int [pk]
+  id_reserva int [ref: > Reserva.id_reserva]
+  id_operario int [ref: > Operario.id_operario]
+  estado varchar(50)
+  f_asignacion datetime
+}
+
+Table Asignacion_Historial {
+  id_historial int [pk]
+  id_asignacion int [ref: > Asignacion.id_asignacion]
+  estado varchar
+  fecha datetime
+  id_usuario bigint [ref: > Usuario.id_usuario]
+  comentario varchar
+}
+
+Table Calificacion {
+  id_calificacion int [pk]
+  id_reserva int [ref: > Reserva.id_reserva]
+  id_usuario bigint [ref: > Usuario.id_usuario]
+  id_operario int [ref: > Operario.id_operario]
+  puntuacion int
+  comentario varchar(255)
+  fecha datetime
+}
+
+// ESQUEMA COMERCIAL
+
+Table Promocion {
+  id_promo int [pk]
+  nombre varchar
+  porcentaje decimal(5,2)
+  valor decimal(10,2)
+  fecha_inicio date
+  fecha_fin date
+  activo boolean
+}
+
+Table Aplica_Promo {
+  id_aplica int [pk]
+  id_reserva int [ref: > Reserva.id_reserva]
+  id_promocion int [ref: > Promocion.id_promo]
+  monto_descuento decimal(10,2)
+}
+
+Table Estado_Pago {
+  id_estado_pago int [pk]
+  nombre varchar
+}
+
+Table Pago {
+  id_pago int [pk]
+  id_reserva int [ref: > Reserva.id_reserva]
+  id_estado_pago int [ref: > Estado_Pago.id_estado_pago]
+  monto decimal(10,2)
+  fecha datetime
+  fecha_creacion datetime
+  fecha_actualizacion datetime
+  usuario_creacion int
+  usuario_actualizacion int
+}
+
+Table Tipo_Pago {
+  id_tipo int [pk]
+  nombre varchar
+}
+
+Table Detalle_Pago {
+  id_detalle int [pk]
+  id_pago int [ref: > Pago.id_pago]
+  id_tipo int [ref: > Tipo_Pago.id_tipo]
+  referencia varchar
+  estado_pago varchar
+}
+
+Table Pago_Historial {
+  id_historial int [pk]
+  id_pago int [ref: > Pago.id_pago]
+  estado varchar(50)
+  fecha datetime
+  id_usuario bigint
+  comentario varchar(255)
+}
+
+// AGRUPACIÓN VISUAL POR ESQUEMA
+
+TableGroup "Esquema de Seguridad" {
+  Tenant
+  Usuario
+  Rol
+  Usuario_Rol
+  Modulo
+  Rol_Modulo
+  TokenRecuperacion
+  Preferencia_Usuario
+}
+
+TableGroup "Esquema Operacional" {
+  Zona
+  Sucursal
+  Operario
+  Operario_Zona
+  Operario_Historial
+  Vehiculo
+  Notificacion
+  Servicio
+  Servicio_Historial
+  Estado_Reserva
+  Reserva
+  Reserva_Servicio
+  Reserva_Historial
+  Asignacion
+  Asignacion_Historial
+  Calificacion
+}
+
+TableGroup "Esquema Comercial" {
+  Promocion
+  Aplica_Promo
+  Estado_Pago
+  Pago
+  Tipo_Pago
+  Detalle_Pago
+  Pago_Historial
+}

@@ -1,0 +1,519 @@
+/*Para poder visualizar la base de datos deben instalar
+  la extension de DBML Preview */
+
+// ============================================================
+// SECURITY DOMAIN
+// ============================================================
+
+Table Users {
+  UserId uuid [pk]
+  Username varchar(100) [not null, unique]
+  Email varchar(255) [not null, unique]
+  PasswordHash varchar(500) [not null]
+  Status boolean [not null, default: true]
+  CreatedAt datetime [not null]
+  UpdatedAt datetime
+  LastLogin datetime
+}
+
+Table Roles {
+  RoleId uuid [pk]
+  RoleName varchar(100) [not null, unique]
+  Description varchar(500)
+  Status boolean [not null, default: true]
+  CreatedAt datetime [not null]
+  UpdatedAt datetime
+}
+
+Table Permissions {
+  PermissionId uuid [pk]
+  PermissionName varchar(150) [not null, unique]
+  Description varchar(500)
+  Resource varchar(150) [not null]
+  Action varchar(100) [not null]
+  Status boolean [not null, default: true]
+  CreatedAt datetime [not null]
+  UpdatedAt datetime
+}
+
+Table User_Role {
+  UserId uuid [not null]
+  RoleId uuid [not null]
+  AssignedAt datetime [not null]
+  AssignedBy uuid
+
+  indexes {
+    (UserId, RoleId) [pk]
+  }
+}
+
+Table Role_Permission {
+  RoleId uuid [not null]
+  PermissionId uuid [not null]
+  AssignedAt datetime [not null]
+  AssignedBy uuid
+
+  indexes {
+    (RoleId, PermissionId) [pk]
+  }
+}
+
+Table Sessions {
+  SessionId uuid [pk]
+  UserId uuid [not null]
+  RefreshTokenHash varchar(500)
+  StartedAt datetime [not null]
+  ExpiresAt datetime [not null]
+  RevokedAt datetime
+  IPAddress varchar(45)
+  UserAgent varchar(1000)
+  Status boolean [not null, default: true]
+}
+
+Table Password_Policies {
+  PolicyId uuid [pk]
+  MinimumLength int [not null, default: 8]
+  RequiresUppercase boolean [not null, default: true]
+  RequiresLowercase boolean [not null, default: true]
+  RequiresNumber boolean [not null, default: true]
+  RequiresSpecialCharacter boolean [not null, default: true]
+  ExpirationDays int
+  PasswordHistory int [not null, default: 5]
+  MaximumAttempts int [not null, default: 5]
+  LockoutTimeMinutes int [not null, default: 15]
+  Status boolean [not null, default: true]
+  CreatedAt datetime [not null]
+  UpdatedAt datetime
+}
+
+Table Security_Configuration {
+  ConfigurationId uuid [pk]
+  ParameterName varchar(150) [not null, unique]
+  ParameterValue varchar(1000) [not null]
+  Description varchar(500)
+  CreatedAt datetime [not null]
+  UpdatedAt datetime
+  UpdatedBy uuid
+}
+
+Table Audit {
+  AuditId uuid [pk]
+  UserId uuid
+  Action varchar(100) [not null]
+  Entity varchar(150)
+  EntityId uuid
+  PreviousData text
+  NewData text
+  IPAddress varchar(45)
+  UserAgent varchar(1000)
+  Timestamp datetime [not null]
+  Result varchar(50) [not null]
+}
+
+Table Error_Log {
+  ErrorId uuid [pk]
+  UserId uuid
+  Service varchar(150) [not null]
+  Endpoint varchar(500)
+  HTTPMethod varchar(20)
+  HTTPStatusCode int
+  Message text [not null]
+  StackTrace text
+  IPAddress varchar(45)
+  Timestamp datetime [not null]
+}
+
+
+// ============================================================
+// PAYMENT DOMAIN
+// ============================================================
+
+Table PaymentStatuses {
+  PaymentStatusId uuid [pk]
+  Name varchar(50) [not null, unique]
+  Description varchar(500)
+}
+
+Table PaymentTypes {
+  PaymentTypeId uuid [pk]
+  Name varchar(100) [not null, unique]
+  Description varchar(500)
+  Status boolean [not null, default: true]
+}
+
+Table Payments {
+  PaymentId uuid [pk]
+  BookingId int [not null]
+  PaymentStatusId uuid [not null]
+  Amount decimal(18,2) [not null]
+  PaymentDate datetime [not null]
+  CreatedAt datetime [not null]
+  UpdatedAt datetime
+  CreatedBy uuid
+  UpdatedBy uuid
+}
+
+Table PaymentDetails {
+  PaymentDetailId uuid [pk]
+  PaymentId uuid [not null]
+  PaymentTypeId uuid [not null]
+  Reference varchar(255)
+  PaymentData text
+}
+
+Table PaymentHistory {
+  PaymentHistoryId uuid [pk]
+  PaymentId uuid [not null]
+  PaymentStatusId uuid [not null]
+  ChangedAt datetime [not null]
+  Comment varchar(500)
+  ChangedBy uuid
+}
+
+
+// ============================================================
+// LOCATION DOMAIN
+// ============================================================
+
+Table Zone {
+  zone_id varchar(255) [pk]
+  name varchar(255) [not null]
+  city varchar(255) [not null]
+  active boolean [not null]
+}
+
+Table Branch {
+  branch_id int [pk, increment]
+  name varchar(255) [not null]
+  address varchar(255) [not null]
+  city varchar(255) [not null]
+  zone_id varchar(255) [not null]
+}
+
+
+// ============================================================
+// SERVICE DOMAIN
+// ============================================================
+
+Table Service {
+  service_id int [pk, increment]
+  name varchar(255) [not null, unique]
+  description varchar(255)
+  price decimal(10,2) [not null]
+  active boolean [not null]
+  created_at datetime [not null]
+  updated_at datetime
+  created_by uuid [not null]
+  updated_by uuid
+}
+
+Table Service_History {
+  history_id int [pk, increment]
+  service_id int [not null]
+  name varchar(255) [not null]
+  price decimal(10,2) [not null]
+  date datetime [not null]
+  user_id uuid [not null]
+  comment varchar(255)
+}
+
+
+// ============================================================
+// VEHICLE DOMAIN
+// ============================================================
+
+Table Vehicle {
+  vehicle_id int [pk, increment]
+  user_id uuid [not null]
+  license_plate varchar(255) [not null, unique]
+  brand varchar(255) [not null]
+  model varchar(255) [not null]
+  type varchar(255) [not null]
+  active boolean [not null]
+  created_at datetime [not null]
+  updated_at datetime
+  created_by uuid [not null]
+  updated_by uuid
+}
+
+
+// ============================================================
+// BOOKING DOMAIN
+// ============================================================
+
+Table Booking_Status {
+  booking_status_id int [pk, increment]
+  name varchar(255) [not null]
+}
+
+Table Booking {
+  booking_id int [pk, increment]
+  user_id uuid [not null]
+  vehicle_id int [not null]
+  branch_id int [not null]
+  booking_status_id int [not null]
+  date datetime [not null]
+  notes varchar(255)
+  total decimal(10,2) [not null]
+  active boolean [not null]
+  created_at datetime [not null]
+  updated_at datetime
+  created_by uuid [not null]
+  updated_by uuid
+}
+
+Table Booking_Service {
+  booking_id int [not null]
+  service_id int [not null]
+  quantity int [not null]
+  unit_price decimal(10,2) [not null]
+  duration_minutes int [not null]
+
+  indexes {
+    (booking_id, service_id) [pk]
+  }
+}
+
+Table Booking_History {
+  history_id int [pk, increment]
+  booking_id int [not null]
+  status varchar(50) [not null]
+  date datetime [not null]
+  user_id uuid [not null]
+  comment varchar(255)
+}
+
+Table Rating {
+  rating_id int [pk, increment]
+  booking_id int [not null]
+  user_id uuid [not null]
+  operator_id int [not null]
+  score int [not null]
+  comment varchar(255)
+  date datetime [not null]
+}
+
+
+// ============================================================
+// OPERATION DOMAIN
+// ============================================================
+
+Table Operator {
+  operator_id int [pk, increment]
+  user_id uuid [not null]
+  specialization varchar(100) [not null]
+  rating decimal(10,2)
+  active boolean [not null]
+}
+
+Table Operator_History {
+  history_id int [pk, increment]
+  operator_id int [not null]
+  specialization varchar(255)
+  rating decimal(10,2)
+  date datetime [not null]
+  user_id uuid [not null]
+  comment varchar(255)
+}
+
+Table Operator_Zone {
+  operator_id int [not null]
+  zone_id varchar(255) [not null]
+  shift varchar(255)
+  active boolean [not null]
+
+  indexes {
+    (operator_id, zone_id) [pk]
+  }
+}
+
+Table Assignment {
+  assignment_id int [pk, increment]
+  booking_id int [not null]
+  operator_id int [not null]
+  status varchar(255) [not null]
+  assignment_date datetime [not null]
+}
+
+Table Assignment_History {
+  history_id int [pk, increment]
+  assignment_id int [not null]
+  status varchar(255) [not null]
+  date datetime [not null]
+  user_id uuid [not null]
+  comment varchar(255)
+}
+
+Table Notification {
+  notification_id int [pk, increment]
+  user_id uuid [not null]
+  message varchar(255) [not null]
+  read boolean [not null]
+  date datetime [not null]
+  type varchar(255) [not null]
+}
+
+
+// ============================================================
+// TABLE GROUPS
+// ============================================================
+
+TableGroup security_entities [color: #3498db] {
+  Users
+  Roles
+  Permissions
+  User_Role
+  Role_Permission
+  Sessions
+  Password_Policies
+  Security_Configuration
+  Audit
+  Error_Log
+}
+
+TableGroup payment_entities [color: #9b59b6] {
+  Payments
+  PaymentDetails
+  PaymentTypes
+  PaymentStatuses
+  PaymentHistory
+}
+
+TableGroup location_entities [color: #f1c40f] {
+  Zone
+  Branch
+}
+
+TableGroup service_entities [color: #2ecc71] {
+  Service
+  Service_History
+}
+
+TableGroup vehicle_entities [color: #1abc9c] {
+  Vehicle
+}
+
+TableGroup booking_entities [color: #e67e22] {
+  Booking
+  Booking_Status
+  Booking_Service
+  Booking_History
+  Rating
+}
+
+TableGroup operation_entities [color: #e74c3c] {
+  Operator
+  Operator_History
+  Operator_Zone
+  Assignment
+  Assignment_History
+  Notification
+}
+
+
+// ============================================================
+// SECURITY RELATIONSHIPS
+// ============================================================
+
+Ref: User_Role.UserId > Users.UserId
+Ref: User_Role.RoleId > Roles.RoleId
+Ref: User_Role.AssignedBy > Users.UserId
+
+Ref: Role_Permission.RoleId > Roles.RoleId
+Ref: Role_Permission.PermissionId > Permissions.PermissionId
+Ref: Role_Permission.AssignedBy > Users.UserId
+
+Ref: Sessions.UserId > Users.UserId
+
+Ref: Security_Configuration.UpdatedBy > Users.UserId
+
+Ref: Audit.UserId > Users.UserId
+Ref: Error_Log.UserId > Users.UserId
+
+
+// ============================================================
+// PAYMENT RELATIONSHIPS
+// ============================================================
+
+Ref: Payments.BookingId > Booking.booking_id
+Ref: Payments.PaymentStatusId > PaymentStatuses.PaymentStatusId
+
+Ref: Payments.CreatedBy > Users.UserId
+Ref: Payments.UpdatedBy > Users.UserId
+
+Ref: PaymentDetails.PaymentId > Payments.PaymentId
+Ref: PaymentDetails.PaymentTypeId > PaymentTypes.PaymentTypeId
+
+Ref: PaymentHistory.PaymentId > Payments.PaymentId
+Ref: PaymentHistory.PaymentStatusId > PaymentStatuses.PaymentStatusId
+Ref: PaymentHistory.ChangedBy > Users.UserId
+
+
+// ============================================================
+// LOCATION RELATIONSHIPS
+// ============================================================
+
+Ref: Branch.zone_id > Zone.zone_id
+
+
+// ============================================================
+// SERVICE RELATIONSHIPS
+// ============================================================
+
+Ref: Service.created_by > Users.UserId
+Ref: Service.updated_by > Users.UserId
+
+Ref: Service_History.service_id > Service.service_id
+Ref: Service_History.user_id > Users.UserId
+
+
+// ============================================================
+// VEHICLE RELATIONSHIPS
+// ============================================================
+
+Ref: Vehicle.user_id > Users.UserId
+Ref: Vehicle.created_by > Users.UserId
+Ref: Vehicle.updated_by > Users.UserId
+
+
+// ============================================================
+// BOOKING RELATIONSHIPS
+// ============================================================
+
+Ref: Booking.user_id > Users.UserId
+Ref: Booking.vehicle_id > Vehicle.vehicle_id
+Ref: Booking.branch_id > Branch.branch_id
+Ref: Booking.booking_status_id > Booking_Status.booking_status_id
+Ref: Booking.created_by > Users.UserId
+Ref: Booking.updated_by > Users.UserId
+
+Ref: Booking_Service.booking_id > Booking.booking_id
+Ref: Booking_Service.service_id > Service.service_id
+
+Ref: Booking_History.booking_id > Booking.booking_id
+Ref: Booking_History.user_id > Users.UserId
+
+Ref: Rating.booking_id > Booking.booking_id
+Ref: Rating.user_id > Users.UserId
+Ref: Rating.operator_id > Operator.operator_id
+
+
+// ============================================================
+// OPERATION RELATIONSHIPS
+// ============================================================
+
+Ref: Operator.user_id > Users.UserId
+
+Ref: Operator_History.operator_id > Operator.operator_id
+Ref: Operator_History.user_id > Users.UserId
+
+Ref: Operator_Zone.operator_id > Operator.operator_id
+Ref: Operator_Zone.zone_id > Zone.zone_id
+
+Ref: Assignment.booking_id > Booking.booking_id
+Ref: Assignment.operator_id > Operator.operator_id
+
+Ref: Assignment_History.assignment_id > Assignment.assignment_id
+Ref: Assignment_History.user_id > Users.UserId
+
+Ref: Notification.user_id > Users.UserId

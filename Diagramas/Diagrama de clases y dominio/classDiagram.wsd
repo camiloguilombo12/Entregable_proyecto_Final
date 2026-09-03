@@ -1,0 +1,263 @@
+@startuml
+
+skinparam packageStyle rectangle
+skinparam linetype ortho
+
+
+package Observer {
+  interface IObserver {
+    +update(message: String)
+  }
+
+  interface ISubject {
+    +subscribe(o: IObserver)
+    +unsubscribe(o: IObserver)
+    +notify(message: String)
+  }
+}
+
+
+package Strategy {
+  interface IPaymentMethod {
+    +pay(amount: double): boolean
+  }
+
+  class CardPayment {
+    +pay(amount: double): boolean
+    +validateCard(): boolean
+  }
+
+  class CashPayment {
+    +pay(amount: double): boolean
+    +validateAmount(): boolean
+  }
+
+  class TransferPayment {
+    +pay(amount: double): boolean
+    +validateAccount(): boolean
+  }
+
+  class PaymentMethodFactory {
+    +createMethod(type: String): IPaymentMethod
+  }
+
+  IPaymentMethod <|-- CardPayment
+  IPaymentMethod <|-- CashPayment
+  IPaymentMethod <|-- TransferPayment
+
+  PaymentMethodFactory ..> IPaymentMethod
+
+
+  interface IOperatorAssignment {
+    +assign(s: ServiceRequest): Operator
+  }
+
+  class ManualAssignment {
+    +assign(s: ServiceRequest): Operator
+  }
+
+  class AutomaticAssignment {
+    +assign(s: ServiceRequest): Operator
+    +findAvailable(zone: String): Operator
+  }
+
+  IOperatorAssignment <|-- ManualAssignment
+  IOperatorAssignment <|-- AutomaticAssignment
+}
+
+
+package Command {
+  interface ICommand {
+    +execute(): void
+  }
+
+  class CreateServiceRequestCommand {
+    +execute(): void
+  }
+
+  class CancelServiceRequestCommand {
+    +execute(): void
+  }
+
+  class AssignOperatorCommand {
+    +execute(): void
+  }
+
+  class MakePaymentCommand {
+    +execute(): void
+  }
+
+  class Invoker {
+    +executeCommand(c: ICommand): void
+  }
+
+  ICommand <|-- CreateServiceRequestCommand
+  ICommand <|-- CancelServiceRequestCommand
+  ICommand <|-- AssignOperatorCommand
+  ICommand <|-- MakePaymentCommand
+
+  Invoker ..> ICommand
+}
+
+
+package Iterator {
+  interface IIterator {
+    +next(): Object
+    +hasNext(): boolean
+  }
+
+  class ServiceRequestList {
+    -requests: List
+    +createIterator(): IIterator
+    +addRequest(s: ServiceRequest): void
+    +removeRequest(id: int): void
+  }
+
+  class NotificationList {
+    -notifications: List
+    +createIterator(): IIterator
+    +addNotification(n: Notification): void
+  }
+
+  ServiceRequestList ..> IIterator
+  NotificationList ..> IIterator
+}
+
+
+package Singleton {
+  class NotificationSystem {
+    -instance: NotificationSystem
+    +getInstance(): NotificationSystem
+    +sendNotification(u: User, message: String): void
+    +sendPromotion(message: String): void
+  }
+}
+
+
+package Model {
+
+  class User {
+    -id: int
+    -name: String
+    -email: String
+    -phone: String
+    +register(): boolean
+    +login(email, password): boolean
+    +editProfile(name, phone): void
+    +requestService(): ServiceRequest
+    +makePayment(p: Payment): boolean
+    +update(message: String): void
+  }
+
+  class Role {
+    -id: int
+    -name: String
+    +createRole(name): void
+    +editRole(name): void
+    +deleteRole(id): void
+  }
+
+  class Vehicle {
+    -id: int
+    -licensePlate: String
+    -type: String
+    +register(): void
+    +edit(): void
+    +delete(): void
+  }
+
+  class ServiceRequest {
+    -id: int
+    -creationDate: String
+    -status: String
+    -observers: List
+    -assigner: IOperatorAssignment
+    +create(): void
+    +cancel(): void
+    +assignOperator(): void
+    +calculateCost(): double
+    +changeStatus(status: String): void
+    +subscribe(o: IObserver): void
+    +notify(message: String): void
+  }
+
+  class Payment {
+    -id: int
+    -amount: double
+    -method: IPaymentMethod
+    +makePayment(): boolean
+    +confirmPayment(): void
+    +cancelPayment(): void
+  }
+
+  class Operator {
+    -id: int
+    -status: String
+    -zone: String
+    +assignZone(zone): void
+    +acceptService(): void
+    +finishService(): void
+  }
+
+  class Booking {
+    -id: int
+    -start: String
+    -end: String
+    +create(): void
+    +cancel(): void
+    +validateSchedule(): boolean
+  }
+
+  class Notification {
+    -id: int
+    -message: String
+    +send(u: User): void
+    +markAsRead(): void
+  }
+
+  class Rating {
+    -id: int
+    -score: int
+    -comment: String
+    +create(): void
+    +edit(): void
+    +delete(): void
+  }
+}
+
+
+IObserver <|.. User
+ISubject <|.. ServiceRequest
+
+Payment ..> IPaymentMethod
+Payment ..> PaymentMethodFactory
+
+NotificationSystem ..> Notification
+NotificationSystem ..> User
+
+CreateServiceRequestCommand ..> ServiceRequest
+CancelServiceRequestCommand ..> ServiceRequest
+AssignOperatorCommand ..> IOperatorAssignment
+MakePaymentCommand ..> Payment
+
+ServiceRequest --> IOperatorAssignment
+
+
+User "1" *-- "1" ServiceRequestList
+User "1" *-- "1" NotificationList
+ServiceRequest "1" *-- "1" Booking
+ServiceRequest "1" *-- "0..1" Rating
+
+
+User "1" o-- "1" Role
+User "1" o-- "1..*" Vehicle
+ServiceRequestList "1" o-- "0..*" ServiceRequest
+NotificationList "1" o-- "0..*" Notification
+
+
+ServiceRequest "1" --> "1" User
+ServiceRequest "1" --> "1" Payment
+ServiceRequest "1" --> "0..1" Operator
+User "1" --> "0..*" Notification
+
+@enduml
